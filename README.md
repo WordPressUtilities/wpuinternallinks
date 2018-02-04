@@ -2,6 +2,7 @@
 
 Handle internal links in content
 
+[![Build Status](https://travis-ci.org/WordPressUtilities/wpuinternallinks.svg?branch=master)](https://travis-ci.org/WordPressUtilities/wpuinternallinks)
 
 ## How to
 
