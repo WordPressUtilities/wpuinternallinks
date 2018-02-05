@@ -7,6 +7,9 @@ function add_action() {
 function esc_attr($str) {
     return $str;
 }
+function get_post(){
+    return false;
+}
 function get_locale() {
     return 'en_EN';
 }

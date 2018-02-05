@@ -4,7 +4,7 @@
 Plugin Name: WPU Internal links Metas
 Plugin URI: https://github.com/WordPressUtilities/wpuinternalinks
 Description: Handle internal links in content
-Version: 0.2.0
+Version: 0.2.1
 Author: Darklg
 Author URI: http://darklg.me/
 License: MIT License
@@ -60,6 +60,12 @@ class WPUInternalLinks {
             if (!isset($link['locales']) || !is_array($link['locales'])) {
                 $link['locales'] = array();
             }
+            if (!isset($link['excluded_ids']) || !is_array($link['excluded_ids'])) {
+                $link['excluded_ids'] = array();
+            }
+            if (!isset($link['post_types']) || !is_array($link['post_types'])) {
+                $link['post_types'] = array();
+            }
             $links[] = $link;
         }
         if (defined('WPUINTERNALLINKS_DEBUG')) {
@@ -77,6 +83,7 @@ class WPUInternalLinks {
     ---------------------------------------------------------- */
 
     public function the_content($content) {
+        $_post = get_post();
 
         $this->stored_strings = array();
 
@@ -89,7 +96,7 @@ class WPUInternalLinks {
 
         /* Insert links terms */
         foreach ($this->links as $link) {
-            $content = $this->insert_link_in_text($link, $content);
+            $content = $this->insert_link_in_text($link, $content, $_post);
         }
 
         /* Remove isolated strings */
@@ -98,10 +105,23 @@ class WPUInternalLinks {
         return $content;
     }
 
-    public function insert_link_in_text($link, $text) {
+    public function insert_link_in_text($link, $text, $_post) {
         /* Limit to certain locales */
         if (!empty($link['locales']) && !in_array(get_locale(), $link['locales'])) {
             return $text;
+        }
+
+        if (is_object($_post)) {
+            /* Limit to a post type */
+            $_post_type = get_post_type($_post);
+            if (!empty($link['post_types']) && !in_array($_post_type, $link['post_types'])) {
+                return $text;
+            }
+
+            /* Exclude some post IDs */
+            if (!empty($link['excluded_ids']) && in_array($_post->ID, $link['excluded_ids'])) {
+                return $text;
+            }
         }
 
         /* Build regex to target string */

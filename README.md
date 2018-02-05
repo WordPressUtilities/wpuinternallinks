@@ -29,12 +29,12 @@ function example_wpuinternallinks__links($links) {
 * [x] Add custom attributes to link.
 * [x] Handle uppercase letters.
 * [x] Choose target language.
+* [x] Custom layout on links ( class )
+* [x] Hook for default attributes.
+* [x] Select post types.
 * [ ] Admin page.
 * [ ] Only on first link ?
 * [ ] Add multiples spellings.
-* [ ] Disable on a post.
-* [ ] Select post types.
+* [ ] Disable on a post (admin).
 * [ ] Apply on content/excerpt.
-* [ ] Custom layout on links ( class )
 * [ ] Handle accents.
-* [ ] Hook for default attributes.
