@@ -1,10 +1,10 @@
 <?php
 
 /*
-Plugin Name: WPU Internal links Metas
+Plugin Name: WPU Internal links
 Plugin URI: https://github.com/WordPressUtilities/wpuinternalinks
 Description: Handle internal links in content
-Version: 0.2.1
+Version: 0.2.2
 Author: Darklg
 Author URI: http://darklg.me/
 License: MIT License
@@ -16,10 +16,10 @@ class WPUInternalLinks {
     private $stored_strings = array();
 
     public function __construct() {
-        add_action('plugins_loaded', array(&$this, 'plugins_loaded'));
+        add_action('wp_loaded', array(&$this, 'wp_loaded'));
     }
 
-    public function plugins_loaded() {
+    public function wp_loaded() {
 
         /* Set links */
         $this->links = apply_filters('wpuinternallinks__links', array());
