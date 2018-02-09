@@ -4,7 +4,7 @@
 Plugin Name: WPU Internal links
 Plugin URI: https://github.com/WordPressUtilities/wpuinternalinks
 Description: Handle internal links in content
-Version: 0.2.2
+Version: 0.3.0
 Author: Darklg
 Author URI: http://darklg.me/
 License: MIT License
@@ -42,7 +42,16 @@ class WPUInternalLinks {
             if (!isset($link['url'])) {
                 continue;
             }
-            if (!isset($link['string'])) {
+            if (!isset($link['string']) && !isset($link['strings'])) {
+                continue;
+            }
+            if (!isset($link['strings']) || !is_array($link['strings'])) {
+                $link['strings'] = array();
+            }
+            if (!empty($link['string'])) {
+                $link['strings'][] = $link['string'];
+            }
+            if (empty($link['strings'])) {
                 continue;
             }
             if (!isset($link['case_insensitive'])) {
@@ -125,11 +134,37 @@ class WPUInternalLinks {
         }
 
         /* Build regex to target string */
+        foreach ($link['strings'] as $string) {
+            $string_regex = $this->build_regex_from_link($link, $string);
+
+            /* Replace all occurrences by a link */
+            preg_match_all($string_regex, $text, $matches);
+            foreach ($matches[0] as $j => $match) {
+                $match_text = $matches[1][$j];
+
+                $link_classname = (!empty($link['link_classname']) ? 'class="' . esc_attr($link['link_classname']) . '"' : '');
+                if (!empty($link['link_attributes'])) {
+                    $link_classname .= ' ' . $link['link_attributes'];
+                }
+                $link_html = '<a ' . $link_classname . ' href="' . $link['url'] . '">' . $match_text . '</a>';
+
+                /* Replace targetted text in this match only */
+                $match_original = $match;
+                $match = str_replace($match_text, $link_html, $match);
+
+                /* Then replace the matched string by the new string in full text */
+                $text = str_replace($match_original, $match, $text);
+            }
+        }
+        return $text;
+    }
+
+    public function build_regex_from_link($link, $string) {
         $string_regex = '/';
         if ($link['target_word']) {
             $string_regex .= '[^A-Za-z0-9-_]+';
         }
-        $string_regex .= '(' . addslashes($link['string']) . ')';
+        $string_regex .= '(' . addslashes($string) . ')';
         if ($link['target_word']) {
             $string_regex .= '[^A-Za-z0-9-]+';
         }
@@ -137,27 +172,11 @@ class WPUInternalLinks {
         if ($link['case_insensitive']) {
             $string_regex .= 'i';
         }
-
-        /* Replace all occurrences by a link */
-        preg_match_all($string_regex, $text, $matches);
-        foreach ($matches[0] as $i => $match) {
-            $match_text = $matches[1][$i];
-
-            $link_classname = (!empty($link['link_classname']) ? 'class="' . esc_attr($link['link_classname']) . '"' : '');
-            $link_html = '<a ' . $link_classname . ' ' . $link['link_attributes'] . ' href="' . $link['url'] . '">' . $match_text . '</a>';
-
-            /* Replace targetted text in this match only */
-            $match_original = $match;
-            $match = str_replace($match_text, $link_html, $match);
-
-            /* Then replace the matched string by the new string in full text */
-            $text = str_replace($match_original, $match, $text);
-        }
-        return $text;
+        return $string_regex;
     }
 
     public function isolate_html_tags($text, $tag = 'a') {
-        preg_match_all('/<' . $tag . '(.*)<\/' . $tag . '>/is', $text, $matches);
+        preg_match_all('/<' . $tag . '(.*)<\/' . $tag . '>/isU', $text, $matches);
         foreach ($matches[0] as $i => $match) {
             $match_id = '#_' . $tag . $i . '_#';
             $text = str_replace($match, $match_id, $text);
@@ -167,7 +186,7 @@ class WPUInternalLinks {
     }
 
     public function isolate_tag_contents($text) {
-        preg_match_all('/<([^>]*)>/is', $text, $matches);
+        preg_match_all('/<([^>]*)>/isU', $text, $matches);
         foreach ($matches[0] as $i => $match) {
             $match_id = '#_' . $i . '_#';
             $text = str_replace($match, $match_id, $text);

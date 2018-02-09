@@ -16,8 +16,12 @@ function example_wpuinternallinks__links($links) {
         'link_attributes' => 'target="_blank"',
         /* Custom classname for converted links */
         'link_classname' => 'my-internal-link',
-        'string' => 'github',
+        /* Target link */
         'url' => 'https://github.com'
+        /* 1 : direct string */
+        'string' => 'github',
+        /* or 2 : list of strings */
+        'strings' => array('github','git hub'),
     );
     return $links;
 }
@@ -32,9 +36,9 @@ function example_wpuinternallinks__links($links) {
 * [x] Custom layout on links ( class )
 * [x] Hook for default attributes.
 * [x] Select post types.
+* [x] Add multiple spellings.
 * [ ] Admin page.
 * [ ] Only on first link ?
-* [ ] Add multiples spellings.
 * [ ] Disable on a post (admin).
 * [ ] Apply on content/excerpt.
 * [ ] Handle accents.
