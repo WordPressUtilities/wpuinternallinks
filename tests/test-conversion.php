@@ -4,9 +4,9 @@ class WPUInternalLinks_Conversion_Test extends PHPUnit_Framework_TestCase {
 
     /* Basic conversion */
     public function testBasicString() {
-        $content = 'this <a href="#">is</a> a Test <a href="#">in</a> my tests.';
+        $content = 'this <a href="#">test is</a> a Test <a href="#">in</a> my tests.';
         $links = array(array('url' => 'http://google.fr', 'string' => 'test'));
-        $content_after = 'this <a href="#">is</a> a <a class="wpuinternallink" href="http://google.fr">Test</a> <a href="#">in</a> my tests.';
+        $content_after = 'this <a href="#">test is</a> a <a class="wpuinternallink" href="http://google.fr">Test</a> <a href="#">in</a> my tests.';
         $content_test = wpuinternallinks_test_content_after($links, $content);
         $this->assertEquals($content_test, $content_after);
     }
@@ -34,6 +34,15 @@ class WPUInternalLinks_Conversion_Test extends PHPUnit_Framework_TestCase {
         $content = 'it’s not git_hub but github.';
         $links = array(array('url' => 'http://google.fr', 'strings' => array('github','git_hub')));
         $content_after = 'it’s not <a class="wpuinternallink" href="http://google.fr">git_hub</a> but <a class="wpuinternallink" href="http://google.fr">github</a>.';
+        $content_test = wpuinternallinks_test_content_after($links, $content);
+        $this->assertEquals($content_test, $content_after);
+    }
+
+    /* Replacement Limit */
+    public function testReplacementLimit() {
+        $content = 'github and github but not github.';
+        $links = array(array('url' => 'https://github.com', 'strings' => array('github'), 'limit' => 2));
+        $content_after = '<a class="wpuinternallink" href="https://github.com">github</a> and <a class="wpuinternallink" href="https://github.com">github</a> but not github.';
         $content_test = wpuinternallinks_test_content_after($links, $content);
         $this->assertEquals($content_test, $content_after);
     }

@@ -4,7 +4,7 @@
 Plugin Name: WPU Internal links
 Plugin URI: https://github.com/WordPressUtilities/wpuinternalinks
 Description: Handle internal links in content
-Version: 0.3.0
+Version: 0.4.0
 Author: Darklg
 Author URI: http://darklg.me/
 License: MIT License
@@ -75,6 +75,9 @@ class WPUInternalLinks {
             if (!isset($link['post_types']) || !is_array($link['post_types'])) {
                 $link['post_types'] = array();
             }
+            if (!isset($link['limit']) || !is_numeric($link['limit'])) {
+                $link['limit'] = 0;
+            }
             $links[] = $link;
         }
         if (defined('WPUINTERNALLINKS_DEBUG')) {
@@ -115,6 +118,10 @@ class WPUInternalLinks {
     }
 
     public function insert_link_in_text($link, $text, $_post) {
+
+        /* Add a key before the text to parse words in first position */
+        $_text_key = '#W#P#U#';
+
         /* Limit to certain locales */
         if (!empty($link['locales']) && !in_array(get_locale(), $link['locales'])) {
             return $text;
@@ -133,12 +140,15 @@ class WPUInternalLinks {
             }
         }
 
+        $text = $_text_key . $text;
+
         /* Build regex to target string */
         foreach ($link['strings'] as $string) {
             $string_regex = $this->build_regex_from_link($link, $string);
 
             /* Replace all occurrences by a link */
             preg_match_all($string_regex, $text, $matches);
+            $nb_replace = 0;
             foreach ($matches[0] as $j => $match) {
                 $match_text = $matches[1][$j];
 
@@ -150,12 +160,17 @@ class WPUInternalLinks {
 
                 /* Replace targetted text in this match only */
                 $match_original = $match;
-                $match = str_replace($match_text, $link_html, $match);
+                $match = $this->str_replace_once($match_text, $link_html, $match);
 
                 /* Then replace the matched string by the new string in full text */
-                $text = str_replace($match_original, $match, $text);
+                $text = $this->str_replace_once($match_original, $match, $text);
+                $nb_replace++;
+                if ($link['limit'] && $link['limit'] <= $nb_replace) {
+                    break;
+                }
             }
         }
+        $text = str_replace($_text_key, '', $text);
         return $text;
     }
 
@@ -200,6 +215,14 @@ class WPUInternalLinks {
             $text = str_replace($match_id, $match, $text);
         }
         return $text;
+    }
+
+    public function str_replace_once($search, $replace, $subject) {
+        $pos = strpos($subject, $search);
+        if ($pos !== false) {
+            $subject = substr_replace($subject, $replace, $pos, strlen($search));
+        }
+        return $subject;
     }
 }
 
